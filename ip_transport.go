@@ -26,7 +26,7 @@ type ipTransport struct {
 	CameraSnapshotReq func(width, height uint) (*image.Image, error)
 
 	config  *Config
-	context hap.Context
+	Context hap.Context
 	server  *http.Server
 	mutex   *sync.Mutex
 
@@ -107,7 +107,7 @@ func NewIPTransport(config Config, a *accessory.Accessory, as ...*accessory.Acce
 		config:    cfg,
 		container: accessory.NewContainer(),
 		mutex:     &sync.Mutex{},
-		context:   hap.NewContextForSecuredDevice(device),
+		Context:   hap.NewContextForSecuredDevice(device),
 		emitter:   event.NewEmitter(),
 		responder: responder,
 		ctx:       ctx,
@@ -139,7 +139,7 @@ func (t *ipTransport) Start() {
 	// Create server which handles incoming tcp connections
 	config := http.Config{
 		Port:      t.config.Port,
-		Context:   t.context,
+		Context:   t.Context,
 		Database:  t.database,
 		Container: t.container,
 		Device:    t.device,
@@ -151,7 +151,7 @@ func (t *ipTransport) Start() {
 	t.server = s
 
 	if t.CameraSnapshotReq != nil {
-		t.server.Mux.Handle("/resource", endpoint.NewResource(t.context, t.CameraSnapshotReq))
+		t.server.Mux.Handle("/resource", endpoint.NewResource(t.Context, t.CameraSnapshotReq))
 	}
 
 	// Publish server port which might be different then `t.config.Port`
@@ -259,13 +259,13 @@ func (t *ipTransport) addAccessory(a *accessory.Accessory) {
 }
 
 func (t *ipTransport) notifyListener(a *accessory.Accessory, c *characteristic.Characteristic, except net.Conn) {
-	conns := t.context.ActiveConnections()
+	conns := t.Context.ActiveConnections()
 	for _, conn := range conns {
 		if conn == except {
 			continue
 		}
 
-		sess := t.context.GetSessionForConnection(conn)
+		sess := t.Context.GetSessionForConnection(conn)
 		if sess == nil {
 			continue
 		}
