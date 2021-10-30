@@ -22,10 +22,11 @@ type Characteristic struct {
 	Format string      `json:"format"`
 	Unit   string      `json:"unit,omitempty"`
 
-	MaxLen    int         `json:"maxLen,omitempty"`
-	MaxValue  interface{} `json:"maxValue,omitempty"`
-	MinValue  interface{} `json:"minValue,omitempty"`
-	StepValue interface{} `json:"minStep,omitempty"`
+	MaxLen        int         `json:"maxLen,omitempty"`
+	MaxValue      interface{} `json:"maxValue,omitempty"`
+	MinValue      interface{} `json:"minValue,omitempty"`
+	StepValue     interface{} `json:"minStep,omitempty"`
+	WriteResponse interface{} `json:"-"`
 
 	// unused
 	Events bool `json:"-"`

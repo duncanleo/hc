@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/brutella/hc/characteristic"
 	"github.com/brutella/hc/hap"
 	"github.com/brutella/hc/log"
 	"github.com/xiam/to"
@@ -120,6 +121,8 @@ func (srv *Server) Characteristics(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		isMultiStatus := false
+
 		resp := &CharacteristicsResponse{}
 		for _, ch := range req.Characteristics {
 			c := srv.getCharacteristic(ch.AccessoryID, ch.CharacteristicID)
@@ -147,12 +150,32 @@ func (srv *Server) Characteristics(w http.ResponseWriter, r *http.Request) {
 						sess.Unsubscribe(c)
 					}
 				}
+			} else {
+				var isWriteResponsePermPresent = false
+
+				for _, perm := range c.Perms {
+					if perm == characteristic.PermWriteResponse {
+						isWriteResponsePermPresent = true
+						break
+					}
+				}
+
+				if isWriteResponsePermPresent {
+					var status = hap.StatusSuccess
+					var chr = CharacteristicResponse{AccessoryID: ch.AccessoryID, CharacteristicID: ch.CharacteristicID, Status: &status, Value: c.WriteResponse}
+					resp.Characteristics = append(resp.Characteristics, chr)
+					isMultiStatus = true
+				}
 			}
 		}
 
 		if len(resp.Characteristics) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
+		}
+
+		if isMultiStatus {
+			w.WriteHeader(http.StatusMultiStatus)
 		}
 
 		WriteJSON(w, r, resp)
